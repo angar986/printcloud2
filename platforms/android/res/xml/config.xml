@@ -6,7 +6,7 @@
         <param name="onload" value="true" />
     </feature>
     <feature name="StarIOAdapter">
-        <param name="android-package" value="com.uforge.plugins.StarIOAdapter" />
+        <param name="android-package" value="com.uforge.plugins.StarIOAdapter"/>
     </feature>
     <allow-intent href="market:*" />
     <name>cloudprint2</name>

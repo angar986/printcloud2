@@ -25,6 +25,14 @@ document.addEventListener("deviceready", function() {
 
         return cordova.exec(success_callback, error_callback, "StarIOAdapter", "rawprint", [message, port_search]);
     };
+	
+	/*Search the availables printers*/
+	window.StarIOAdapter.search=function(message,port_search,success_callback,error_callback){
+		if(error_callback == null) {
+			error_callback = handle_error_callback;
+		}
+		return cordova.exec(success_callback, error_callback, "StarIOAdapter", "search", [message, port_search]);
+	};
 
 }, false);
 

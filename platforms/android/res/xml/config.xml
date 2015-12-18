@@ -6,7 +6,7 @@
         <param name="onload" value="true" />
     </feature>
     <feature name="StarIOAdapter">
-        <param name="android-package" value="com.uforge.plugins.StarIOAdapter"/>
+        <param name="android-package" value="com.uforge.plugins.StarIOAdapter" />
     </feature>
     <allow-intent href="market:*" />
     <name>cloudprint2</name>
@@ -18,7 +18,7 @@
     </author>
     <content src="index.html" />
     <preference name="permissions" value="none" />
-    <preference name="orientation" value="default" />
+    <preference name="orientation" value="landscape" />
     <preference name="target-device" value="universal" />
     <preference name="fullscreen" value="true" />
     <preference name="webviewbounce" value="true" />

@@ -69,14 +69,30 @@ public class PrinterFunctions
         return portName;
     }
 
-    private static byte[] convertFromListByteArrayTobyteArray(List<Byte> ByteArray) {
+    /*private static byte[] convertFromListByteArrayTobyteArray(List<Byte> ByteArray) {
         byte[] byteArray = new byte[ByteArray.size()];
         for(int index = 0; index < byteArray.length; index++) {
             byteArray[index] = ByteArray.get(index);
         }
 
         return byteArray;
-    }
+    }*/
+	
+	private static byte[] convertFromListByteArrayTobyteArray(List<byte[]> ByteArray) {
+		int dataLength = 0;
+		for (int i = 0; i < ByteArray.size(); i++) {
+			dataLength += ByteArray.get(i).length;
+		}
+
+		int distPosition = 0;
+		byte[] byteArray = new byte[dataLength];
+		for (int i = 0; i < ByteArray.size(); i++) {
+			System.arraycopy(ByteArray.get(i), 0, byteArray, distPosition, ByteArray.get(i).length);
+			distPosition += ByteArray.get(i).length;
+		}
+
+		return byteArray;
+	}
 
     public static void CopyArray(byte[] srcArray, Byte[] cpyArray) {
         for (int index = 0; index < cpyArray.length; index++) {
@@ -84,7 +100,7 @@ public class PrinterFunctions
         }
     }
 
-    public static void SendCommand(Context context, String portName, String portSettings, ArrayList<Byte> byteList) throws StarIOPortException {
+    public static void SendCommand(Context context, String portName, String portSettings, ArrayList<byte[]> byteList) throws StarIOPortException {
         StarIOPort port = null;
         try {
             /*

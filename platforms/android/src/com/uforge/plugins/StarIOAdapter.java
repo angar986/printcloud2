@@ -146,9 +146,9 @@ public class StarIOAdapter extends CordovaPlugin {
 		
 		try{
 			JSONObject jsonobject = new JSONObject(message);
+			JSONArray nombres=jsonobject.names();
+			if(nombres.toString().contains("Pagar")){
 			JSONArray jsonArray = jsonobject.getJSONArray("Pagar");
-			JSONArray jsonArrayc = jsonobject.getJSONArray("Cierre");
-			if(jsonArray!=null){
 			JSONObject expjson=jsonArray.getJSONObject(0);
 			JSONObject objcliente=expjson.getJSONObject("cliente");
 			JSONObject objfactura=expjson.getJSONObject("factura");
@@ -167,8 +167,9 @@ public class StarIOAdapter extends CordovaPlugin {
 			nombreEmpresa=objempresa.getString("nombre");
 			direccionEmpresa=objempresa.getString("direccion");
 			tipo="pagar";
-			}else if(jsonArrayc!=null){
+			}else if(nombres.toString().contains("Cierre")){
 				tipo="cierre";
+				JSONArray jsonArrayc = jsonobject.getJSONArray("Cierre");
 				JSONObject expjson=jsonArrayc.getJSONObject(0);
 				fechaCierre=expjson.getString("fecha_caja");
 				fechaImpresion=expjson.getString("fecha_imp");
@@ -255,10 +256,10 @@ public class StarIOAdapter extends CordovaPlugin {
 						}
 						
 						String desc=linea.getString("nombre_producto");
-						if(desc.length()>20)
-							desc=desc.substring(0,19);
-						else if(desc.length()<20){
-							int tam=19-desc.length();
+						if(desc.length()>22)
+							desc=desc.substring(0,21);
+						else if(desc.length()<22){
+							int tam=21-desc.length();
 							for(int n=0;n<tam;n++){
 								desc=desc+" ";
 							}
@@ -314,23 +315,65 @@ public class StarIOAdapter extends CordovaPlugin {
 				list.add(new byte[] { 0x1b, 0x1d, 0x61, 0x02 });
 				list.add(createCp1252("TOTAL:  "+String.valueOf(totalfact)+" US\r\n"));	
 			}else if(tipo.equals("cierre")){
+				
+				if(subtotalCierre.length()<9){
+					int tam=9-subtotalCierre.length();
+						for(int n=0;n<tam;n++){
+							subtotalCierre=" "+subtotalCierre;
+						}
+				}
+						
+				if(ivaCierre.length()<9){
+					int tam=9-ivaCierre.length();
+						for(int n=0;n<tam;n++){
+								ivaCierre=" "+ivaCierre;
+						}
+				}
+				
+				if(totalCierre.length()<9){
+					int tam=9-totalCierre.length();
+						for(int n=0;n<tam;n++){
+								totalCierre=" "+totalCierre;
+						}
+				}
+						
 				list.add(createCp1252("CIERRE DE CAJA\r\n"));
+				list.add(new byte[] { 0x1b, 0x69, 0x00, 0x00 }); // Cancel Character Expansion
+				list.add(new byte[] { 0x1b, 0x1d, 0x61, 0x00 }); // Alignment
 				list.add(createCp1252("--------------------------------\r\n"));
 				list.add(createCp1252("FECHA IMPRESION:"+fechaImpresion+"\r\n"));
-				list.add(createCp1252("FECHA CIERRE:"+fechaCierre+"\r\n"));
+				list.add(createCp1252("   FECHA CIERRE:"+fechaCierre+"\r\n"));
 				list.add(createCp1252("--------------------------------\r\n"));
 				list.add(new byte[] { 0x1b, 0x69, 0x00, 0x00 }); // Cancel Character Expansion
+				list.add(new byte[] { 0x1b, 0x1d, 0x61, 0x00 }); // Alignment
+				list.add(createCp1252("--------------------------------\r\n"));
 				list.add(createCp1252("FACTURAS\r\n"));
-				list.add(createCp1252("No. Facturas:"+numeroFacturas+"\r\n"));
-				list.add(createCp1252("No. Anuladas:"+anuladas+"\r\n"));
+				if(numeroFacturas.length()<9){
+								int tam=9-numeroFacturas.length();
+									for(int n=0;n<tam;n++){
+											numeroFacturas=" "+numeroFacturas;
+									}
+							}
+				
+				if(anuladas.length()<9){
+					int tam=9-anuladas.length();
+					for(int n=0;n<tam;n++){
+							anuladas=" "+anuladas;
+						}
+				}
+				
+				list.add(createCp1252("No. Facturas    "+numeroFacturas+"\r\n"));
+				list.add(createCp1252("No. Anuladas    "+anuladas+"\r\n"));
 				list.add(new byte[] { 0x1b, 0x69, 0x00, 0x00 }); // Cancel Character Expansion
+				list.add(createCp1252("--------------------------------\r\n"));
 				list.add(createCp1252("TOTALES\r\n"));
-				list.add(createCp1252("SUBTOTAL:"+subtotalCierre+"\r\n"));
-				list.add(createCp1252("     IVA:"+ivaCierre+"\r\n"));
-				list.add(createCp1252("   TOTAL:"+totalCierre+"\r\n"));
+				list.add(createCp1252("Subtotal        "+subtotalCierre+"\r\n"));
+				list.add(createCp1252("Iva             "+ivaCierre+"\r\n"));
+				list.add(createCp1252("TOTAL           "+totalCierre+"\r\n"));
 				list.add(new byte[] { 0x1b, 0x69, 0x00, 0x00 }); // Cancel Character Expansion
+				list.add(createCp1252("--------------------------------\r\n"));
 				list.add(createCp1252("FORMAS DE PAGO\r\n"));
-				if(expprod.length()>0){
+				if(expformas.length()>0){
 						try{
 						JSONObject linea=expformas.getJSONObject(0);
 						//String [] names=JSONObject.getNames(linea);
@@ -338,7 +381,22 @@ public class StarIOAdapter extends CordovaPlugin {
 						while (key.hasNext()) {
 							String nombre = key.next().toString();
 							String valor=linea.getString(nombre);
-							list.add(createCp1252(String.valueOf(nombre)+":"+String.valueOf(valor)+"\r\n"));
+							
+							if(valor.length()<9){
+								int tam=9-valor.length();
+									for(int n=0;n<tam;n++){
+											valor=" "+valor;
+									}
+							}
+							
+							if(nombre.length()<15){
+								int tam=15-nombre.length();
+									for(int n=0;n<tam;n++){
+											nombre=nombre+" ";
+									}
+							}
+							
+							list.add(createCp1252(String.valueOf(nombre)+" "+String.valueOf(valor)+"\r\n"));
 						}
 						/*for(int m=0;m<names.length();m++)
 						{

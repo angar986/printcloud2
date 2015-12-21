@@ -508,10 +508,12 @@ function performPurchase(restaurant){
 			var hoy=new Date().getTime();
 			//console.log(hoy);
 			
+			var mitimespan=$('#timespanFactura').val();
+			
 			var db = window.openDatabase("Database", "1.0", "PractisisMobile", 200000);
 			db.transaction(Ingresafacturas, errorCB, successCB);
 			function Ingresafacturas(tx){
-				tx.executeSql("INSERT INTO FACTURAS(clientName,RUC,address,tele,fetchJson,paymentsUsed,cash,cards,cheques,vauleCxC,paymentConsumoInterno,tablita,aux,acc,echo,fecha)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[clientName,RUC,address,tele,fetchJson,paymentsUsed,cash,cards,cheques,valueCxC,paymentConsumoInterno,table,aux,acc,echo,hoy],function(){
+				tx.executeSql("INSERT INTO FACTURAS(clientName,RUC,address,tele,fetchJson,paymentsUsed,cash,cards,cheques,vauleCxC,paymentConsumoInterno,tablita,aux,acc,echo,fecha,timespan)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[clientName,RUC,address,tele,fetchJson,paymentsUsed,cash,cards,cheques,valueCxC,paymentConsumoInterno,table,aux,acc,echo,hoy,mitimespan],function(){
 					console.log("Nueva Factura Ingresada");
 					//$('#pay').fadeOut('fast');
 					// envia('nubepos/nubepos/');
@@ -667,6 +669,7 @@ function impresionMovil(mijson){
 	$('#printFactura').hide();
 	 window.open('centvia://?udn=Impresion&utt=NubePOS&cru=nubeposv2&cruf=nubeposv2&c_='+respuesta,'_system','location=yes');
 	 envia('puntodeventa');*/
+	envia('puntodeventa');
 	StarIOAdapter.rawprint(mijson, "BT:", function() {
 			$('.productosComprados').remove();
 			$('#subsiniva').html('');
@@ -676,7 +679,6 @@ function impresionMovil(mijson){
 			$('#totalPagado').html('');
 			$('#tablaCompra').html('');
 			$('#printFactura').hide();
-			envia('puntodeventa');
 	});
 }
 
@@ -693,7 +695,7 @@ function imprSelec(muestra)
 function cancelPayment(){
 	$('#payButton').show();
 	$('#payButtonActivated').hide();
-	$('#referenceToReset')[0].reset();
+	//$('#referenceToReset')[0].reset();
 	$('.paymentMethods').val('');
 	$('#justification').val('');
 	$('.passwordCheck').val('');

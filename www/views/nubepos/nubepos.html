@@ -506,13 +506,14 @@
 		<input id="impuesto-1" type="text" value="1|IVA|0.12">
 		<input id="impuesto-2" type="text" value="2|Servicio|0.1">
 	</div>
-	<div id="factura">
+	<div id="factura" style='display:none;'>
 		<input type="hidden" id="subtotalSinIva" value="0"/>
 		<input type="hidden" id="subtotalIva" value="0"/>
 		<input type="text" id="descuentoFactura" value="0"/>
 		<input type="hidden" id="totalmiFactura" value="0"/>
+		<input type="hidden" id="timespanFactura" value="0"/>
 	</div>
-	<div id="controller">
+	<div id="controller" style='display:none;'>
 		<input type="hidden" id="pager" value="1"/>
 		<input type="hidden" id="category" value="1"/>
 		<input type="hidden" id="maxPage" value="1"/>
@@ -529,7 +530,7 @@
 		</div>
 		<!--<div id="positionClosePreCuenta" style="position: absolute; left: 96%; top: 0%; z-index: 20;"><img onclick="cancelPayment(); return false;" style="cursor: pointer;" src="../images/xcierre.png"/></div>-->
 		<div style="display: none;" id="json"></div>
-		<form id="referenceToReset">
+		<div id="referenceToReset">
 				<input id="acc" name="acc" type="hidden" value="">
 				<input id="echo" name="echo" type="hidden" value=""> 
 				<div class=''>
@@ -734,7 +735,7 @@
 						 </div>
 					</div>
 				</div>
-		</form>
+		</div>
 	<!--</div>--->
 	</div>
 	</div>

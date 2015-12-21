@@ -582,7 +582,7 @@ function agregarCompra(item,origen){
 	});
 	
 	var total = ((parseFloat(productoCantidad) * parseFloat(productoPrecio)) + parseFloat(taxTotal)).toFixed(2);//YAESTA
-	$('#tablaCompra').append('<tr id="cant_'+i+'"><td class="lineadetalle" data-borrarcantidad="'+ productoCantidad +'" data-borrarimpuesto="'+ productoImpuestos +'" data-borrarimpuestoindexes="'+ productoImpuestosIndexes +'" data-borrarprecio="'+ productoPrecio +'" onclick="borrarCompra(this); return false;" style="width: 5%;"><button type="button" class="btn btn-danger btn-xs product_del"><span class="glyphicon glyphicon-remove" ></span></button><input type="hidden" class="totales" value="'+ total +'"/></td><td onclick="modificarCantidad('+i+' , '+id_local+')" style="border-right:1px solid #909192; text-align: center; width:20%;" class="lineadetalle" "><input type="hidden" class="productDetails" value="'+ productoID +'|'+ productoNombre +'|'+ productoCantidad +'|'+ productoPrecio +'|'+ productoPrecio +'|'+ productoImpuestos +'|'+ ((parseFloat(productoCantidad) * parseFloat(productoPrecio)) + parseFloat(taxTotal)) +'" /><input type="hidden" class="cantidadproductoscomandados" value="'+productoCantidad+'"/>'+productoCantidad +'</td><td style="border-right:1px solid #909192; padding-left:20px;text-align: left; width:50%; text-transform:capitalize;" class="lineadetalle">'+ productoNombre+'</td><td style="padding-right:20px; text-align: right;" class="lineadetalle">'+ parseFloat(total).toFixed(2) +'</td></tr>');
+	$('#tablaCompra').append('<tr id="cant_'+i+'"><td class="lineadetalle" data-borrarcantidad="'+ productoCantidad +'" data-borrarimpuesto="'+ productoImpuestos +'" data-borrarimpuestoindexes="'+ productoImpuestosIndexes +'" data-borrarprecio="'+ productoPrecio +'" onclick="borrarCompra(this); return false;" style="width: 5%;"><button type="button" class="btn btn-danger btn-xs product_del"><span class="glyphicon glyphicon-remove" ></span></button><input type="hidden" class="totales" value="'+ total +'"/></td><td onclick="modificarCantidad('+i+' , '+id_local+')" style="border-right:1px solid #909192; text-align: center; width:20%;" class="lineadetalle" "><input type="hidden" class="productDetails" value="'+ productoID +'|'+ productoNombre +'|'+ productoCantidad +'|'+ productoPrecio +'|'+ productoPrecio +'|'+ productoImpuestos +'|'+ ((parseFloat(productoCantidad) * parseFloat(productoPrecio)) + parseFloat(taxTotal)) +'|'+productoImpuestosIndexes+'" /><input type="hidden" class="cantidadproductoscomandados" value="'+productoCantidad+'"/>'+productoCantidad +'</td><td style="border-right:1px solid #909192; padding-left:20px;text-align: left; width:50%; text-transform:capitalize;" class="lineadetalle">'+ productoNombre+'</td><td style="padding-right:20px; text-align: right;" class="lineadetalle">'+ parseFloat(total).toFixed(2) +'</td></tr>');
 	$('.totales').each(function(){
 		sumTotal += parseFloat($.trim($(this).val()));
 		i++;
@@ -1025,9 +1025,14 @@ function pagar(){
 		db.transaction(function (tx){
 			tx.executeSql('SELECT MAX(id)+1 as max FROM FACTURAS',[],
 			function(tx,res){
-				var coun=res.rows.item(0).max.toString().length;
-				var nfact=res.rows.item(0).max.toString();
 				var ceros='';
+				var coun=0;
+				var nfact='1';
+				if(res.rows.length>0){
+					coun=res.rows.item(0).max.toString().length;
+					nfact=res.rows.item(0).max.toString();
+				}
+				
 				var ceroscount=0;
 				while(ceroscount<(9-coun)){
 					ceros+='0';
@@ -1037,11 +1042,28 @@ function pagar(){
 			});
 		});
 	
+	var nombreEmpresa="NubePOS"; 
+	var dirEmpresa="Av. Direccion"; 
+		
+	db.transaction(function (tx){
+		tx.executeSql('SELECT * FROM CONFIG',[],
+		function(tx,res){
+			if(res.rows.length>0){
+				var datosem=res.rows.item(0);
+				dirEmpresa=datosem.nombre;
+				nombreEmpresa=datosem.direccion;
+			}
+		});
+	});
+	
 	var subtotalSinIva = $('#subtotalSinIva').val();
 	var subtotalIva = $('#subtotalIva').val();
 	var descuento = $('#descuentoFactura').val();
     var total = $('#totalmiFactura').val();
     var nofactura = $('#invoiceNr').html();
+	//if($('#timespanFactura').val()=='')
+	$('#timespanFactura').val(getTimeSpan());
+    var timefactura = $('#timespanFactura').val();
 	total=parseFloat(total);
 	/*$('#justo').html(total.toFixed(2));
 	$('#justo').attr('data-value',-1*total.toFixed(2));
@@ -1057,17 +1079,24 @@ function pagar(){
 	$('#changeFromPurchase').html((total-discount).toFixed(2));
 	$('#invoiceDebt').html('FALTANTE');
 
-	var impuestos = '';
+	var idimpuestos = '';
+	var ivavalor=0;
+	var servalor=0;
 
 	$('.esImpuesto').each(function(){
 		var getName = $(this).data('nombre');
 		var getId = $(this).data('id');
 		var getValue = $(this).data('valor');
+		//idimpuestos += getName +'/'+ $(this).val() +'/'+ getId +'/'+ getValue +'@';
+		idimpuestos += getId+'@';
+		if(getId=='1')
+			ivavalor=$(this).val();
+		if(getId=='2')
+			servalor=$(this).val();
 		
-		impuestos += getName +'/'+ $(this).val() +'/'+ getId +'/'+ getValue +'@';
-		});
+	});
 
-	impuestos = impuestos.substring(0,impuestos.length -1);
+	idimpuestos = idimpuestos.substring(0,idimpuestos.length -1);
 	
 	
 
@@ -1089,29 +1118,97 @@ function pagar(){
 		var splitDetails = $(this).val().split('|');
 		json += '{';
 			json += '"id_producto" : "'+ splitDetails[0] +'",';
+			json += '"timespanproducto" : "'+ splitDetails[0] +'",';
+			json += '"timespanconsumo" : "'+getTimeSpan()+'",';
 			json += '"nombre_producto" : "'+ splitDetails[1] +'",';
 			json += '"cant_prod" : "'+ splitDetails[2] +'",';
 			json += '"precio_orig" : "'+ splitDetails[3] +'",';
 			json += '"precio_prod" : "'+ splitDetails[4] +'",';
-			json += '"impuesto_prod" : "'+ splitDetails[5] +'",';
+			json += '"impuesto_prod" : "'+ splitDetails[7] +'",';
 			json += '"precio_total" : "'+ splitDetails[6] +'",';
 			json += '"precio_descuento_justificacion" : ""';
 		json += '},';
 		});
 		
+	var midevice='';
+	if(typeof device!="undefined")
+		midevice=device.uuid;
+		
 	json = json.substring(0,json.length -1);	
 	json += '],'
 	json += '"factura" : {';
 		json += '"subtotal_sin_iva" : "'+ subtotalSinIva +'",';
+		json += '"timespanfactura" : "'+ timefactura +'",';
+		json += '"idbarrascajas" : "'+midevice+'",';
+		json += '"fecha" : "'+ new Date().getTime() +'",';
+		json += '"anulada" : "false",';
 		json += '"subtotal_iva" : "'+ subtotalIva +'",';
-		json += '"impuestos" : "'+ impuestos +'",';
+		json += '"impuestos" : "'+ idimpuestos +'",';
+		json += '"iva" : "'+ ivavalor +'",';
+		json += '"servicio" : "'+ servalor +'",';
 		json += '"descuento" : "'+ descuento +'",';
 		json += '"total" : "'+ total +'",';
 		json += '"numerofact" : "'+ nofactura +'"';
 		json += '},';
-		json +='"empresa":{'+'"nombre":"NubePOS","direccion":"Av. Nube 5897"}}]}';
-	$('#json').html(json);
-	receiveJson();
+		json +='"empresa":{'+'"nombre":"'+nombreEmpresa+'","direccion":"'+dirEmpresa+'"},"pagos":[';
+		
+		var nformas=0;
+		var cadefectivo='';
+		var cadtarjetas='';
+		var cadcheques='';
+		var cadcxc='';
+		
+		if($('#paymentEfectivo').val()!=''&&parseFloat($('#paymentEfectivo').val())>0)
+		{	
+			cadefectivo+='{"forma":"efectivo","valor":"'+$('#paymentEfectivo').val()+'","tipotarjeta":"","lote":"","numerocheque":"","banco":""}';
+			nformas++;
+		}
+		
+		var count=0;
+		$('.cardv').each(function(){
+			if($(this).html()!=''&&parseFloat($(this).parent().attr("data-value"))>0){
+				
+				if(nformas>0&&count==0)
+					cadtarjetas+=',';
+		
+				if(count>0)
+					cadtarjetas+=',';
+				
+				cadtarjetas+='{"forma":"tarjetas","valor":"'+parseFloat($(this).parent().attr("data-value"))+'","tipotarjeta":"'+parseFloat($(this).parent().attr("data-id"))+'","lote":"","numerocheque":"","banco":""}';
+				count++;
+				nformas++;
+			}
+				
+		});
+		
+		
+		var count=0;
+			if($('#valorcheque1').val()!=''&&parseFloat($('#valorcheque1').val())>0){
+				if(nformas>0&&count==0)
+					cadcheques+=',';
+				
+				if(count>0)
+					cadcheques+=',';
+				cadcheques+='{"forma":"cheques","valor":"'+$('#valorcheque1').val()+'","tipotarjeta":"","lote":"","numerocheque":"'+$('#chequeno1').val()+'","banco":""}';
+				count++;
+				nformas++;
+			}
+				
+		//alert(cadtarjetas);
+		
+		if(cadefectivo!='') json+=cadefectivo;
+		if(cadtarjetas!='') json+=cadtarjetas;
+		if(cadcheques!='') json+=cadcheques;
+		if($('#valorcxc').val()!=''&&parseFloat($('#valorcxc').val())>0){
+			if(nformas>0)
+				json+=',';
+			json+='{"forma":"cxc","valor":"'+$('#valorcxc').val()+'","tipotarjeta":"","lote":"","numerocheque":"","banco":"'+$('#justcxc').val()+'"}';
+		} 	
+		json+=']}]}';
+		
+		$('#json').html(json);
+		//alert("Ana");
+		receiveJson();	
 	//$('#pay').show();
 }
 	
@@ -1703,10 +1800,11 @@ function Ready(){
                 e5=expProduct[4];
                 e6=expProduct[5];
                 e7=expProduct[6];
+				e8=expProduct[7];
 			
                 $(this).parent().html('\
 					<input type="hidden" class="cantidadproductoscomandados" value="'+currentCantidad+'"/>\
-					<input type="hidden" class="productDetails" value="'+e1+'|'+e2+'|'+currentCantidad+'|'+e4+'|'+e5+'|'+e6+'|+'+e7+'">'+currentCantidad);
+					<input type="hidden" class="productDetails" value="'+e1+'|'+e2+'|'+currentCantidad+'|'+e4+'|'+e5+'|'+e6+'|+'+e7+'|'+e8+'">'+currentCantidad);
             }
         });
         
@@ -2335,7 +2433,7 @@ function valorchequechange(){
 	//console.log('Anachwque');
 	var suma=0;
 	$('.cheque').each(function(){
-		console.log("Ana"+$(this).val());
+		//console.log("Ana"+$(this).val());
 		if($(this).val()!=null)
 			suma+=parseFloat($(this).val());
 	});

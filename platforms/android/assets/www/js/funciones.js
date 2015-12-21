@@ -1037,11 +1037,27 @@ function pagar(){
 			});
 		});
 	
+	var nombreEmpresa="NubePOS"; 
+	var dirEmpresa="Av. Direccion"; 
+		
+	db.transaction(function (tx){
+		tx.executeSql('SELECT * FROM CONFIG',[],
+		function(tx,res){
+			if(res.rows.length>0){
+				var datosem=res.rows.item(0);
+				dirEmpresa=datosem.nombre;
+				nombreEmpresa=datosem.direccion;
+			}
+			
+		});
+	});
+	
 	var subtotalSinIva = $('#subtotalSinIva').val();
 	var subtotalIva = $('#subtotalIva').val();
 	var descuento = $('#descuentoFactura').val();
     var total = $('#totalmiFactura').val();
     var nofactura = $('#invoiceNr').html();
+    var timefactura = $('#timespanFactura').html();
 	total=parseFloat(total);
 	/*$('#justo').html(total.toFixed(2));
 	$('#justo').attr('data-value',-1*total.toFixed(2));
@@ -1057,17 +1073,24 @@ function pagar(){
 	$('#changeFromPurchase').html((total-discount).toFixed(2));
 	$('#invoiceDebt').html('FALTANTE');
 
-	var impuestos = '';
+	var idimpuestos = '';
+	var ivavalor=0;
+	var servalor=0;
 
 	$('.esImpuesto').each(function(){
 		var getName = $(this).data('nombre');
 		var getId = $(this).data('id');
 		var getValue = $(this).data('valor');
+		//idimpuestos += getName +'/'+ $(this).val() +'/'+ getId +'/'+ getValue +'@';
+		idimpuestos += getId+'@';
+		if(getId=='1')
+			ivavalor+=getValue;
+		if(getId=='2')
+			servalor+=getValue;
 		
-		impuestos += getName +'/'+ $(this).val() +'/'+ getId +'/'+ getValue +'@';
-		});
+	});
 
-	impuestos = impuestos.substring(0,impuestos.length -1);
+	idimpuestos = idimpuestos.substring(0,impuestos.length -1);
 	
 	
 
@@ -1089,6 +1112,8 @@ function pagar(){
 		var splitDetails = $(this).val().split('|');
 		json += '{';
 			json += '"id_producto" : "'+ splitDetails[0] +'",';
+			json += '"timespanproducto" : "'+ splitDetails[0] +'",';
+			json += '"timespanconsumo" : "'+getTimeSpan()+'",';
 			json += '"nombre_producto" : "'+ splitDetails[1] +'",';
 			json += '"cant_prod" : "'+ splitDetails[2] +'",';
 			json += '"precio_orig" : "'+ splitDetails[3] +'",';
@@ -1103,13 +1128,19 @@ function pagar(){
 	json += '],'
 	json += '"factura" : {';
 		json += '"subtotal_sin_iva" : "'+ subtotalSinIva +'",';
+		json += '"timespanfactura" : "'+ timefactura +'",';
+		json += '"idbarrascajas" : "'+ device.uuid +'",';
+		json += '"fecha" : "'+ new Date.getTime() +'",';
+		json += '"anulada" : "false",';
 		json += '"subtotal_iva" : "'+ subtotalIva +'",';
-		json += '"impuestos" : "'+ impuestos +'",';
+		json += '"impuestos" : "'+ idimpuestos +'",';
+		json += '"iva" : "'+ ivavalor +'",';
+		json += '"servicio" : "'+ servalor +'",';
 		json += '"descuento" : "'+ descuento +'",';
 		json += '"total" : "'+ total +'",';
 		json += '"numerofact" : "'+ nofactura +'"';
 		json += '},';
-		json +='"empresa":{'+'"nombre":"NubePOS","direccion":"Av. Nube 5897"}}]}';
+		json +='"empresa":{'+'"nombre":"'+nombreEmpresa+'","direccion":"'+dirEmpresa+'"}}]}';
 	$('#json').html(json);
 	receiveJson();
 	//$('#pay').show();

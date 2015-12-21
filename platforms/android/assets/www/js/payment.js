@@ -501,6 +501,7 @@ function performPurchase(restaurant){
 			var RUC = $.trim($('#cedulaP').val());
 			var address = $('#direccionP').val();
 			var tele = $('#telefonoP').val();
+			var mitimespan = getTimeSpan();
 			
 			//console.log(clientName+'/'+RUC);
 			//console.log(clientName+'/'+RUC);
@@ -511,7 +512,7 @@ function performPurchase(restaurant){
 			var db = window.openDatabase("Database", "1.0", "PractisisMobile", 200000);
 			db.transaction(Ingresafacturas, errorCB, successCB);
 			function Ingresafacturas(tx){
-				tx.executeSql("INSERT INTO FACTURAS(clientName,RUC,address,tele,fetchJson,paymentsUsed,cash,cards,cheques,vauleCxC,paymentConsumoInterno,tablita,aux,acc,echo,fecha)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[clientName,RUC,address,tele,fetchJson,paymentsUsed,cash,cards,cheques,valueCxC,paymentConsumoInterno,table,aux,acc,echo,hoy],function(){
+				tx.executeSql("INSERT INTO FACTURAS(timespan,clientName,RUC,address,tele,fetchJson,paymentsUsed,cash,cards,cheques,vauleCxC,paymentConsumoInterno,tablita,aux,acc,echo,fecha)VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",[mitimespan,clientName,RUC,address,tele,fetchJson,paymentsUsed,cash,cards,cheques,valueCxC,paymentConsumoInterno,table,aux,acc,echo,hoy],function(){
 					console.log("Nueva Factura Ingresada");
 					//$('#pay').fadeOut('fast');
 					// envia('nubepos/nubepos/');
